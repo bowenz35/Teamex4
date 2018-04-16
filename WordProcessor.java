@@ -1,3 +1,14 @@
+///////////////////////////////////////////////////////////////////////////////
+// assignment name: p4
+// Author: Tianyuan(Rainer) Yuan
+// Partner:BOWEN ZHANG GRIFF ZHANG JICHEN ZHANG JUNGE ZHANG
+// Email : tyuan22@wisc.edu
+// due date: April 15th 2018
+// CS Login: tyuan22
+// Credits: none
+// known bugs: none
+//////////////////////////////////////////////////////////////////////////////
+
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -26,12 +37,14 @@ public class WordProcessor {
      * @throws IOException exception resulting from accessing the filepath
      */
     public static Stream<String> getWordStream(String filepath) throws IOException {
-       
-        Stream<String> wStream = Files.lines(Paths.get(filepath));
-        wStream = wStream.filter(x -> x!=null && !x.equals(""));
-        wStream = wStream.map(String::trim);
-        wStream = wStream.map(String::toUpperCase);
-        return wStream;        
+
+        Stream<String> wStream = Files.lines(Paths.get(filepath));// create a stream objct through
+                                                                  // filepaht
+        wStream = wStream.filter(x -> x != null && !x.equals(""));// filter out the null and empty
+                                                                  // content
+        wStream = wStream.map(String::trim);// trim all the line
+        wStream = wStream.map(String::toUpperCase);// make them to uppercase
+        return wStream;
         /**
          * @see <a href=
          *      "https://docs.oracle.com/javase/8/docs/api/java/nio/file/Files.html">java.nio.file.Files</a>
@@ -89,7 +102,8 @@ public class WordProcessor {
      * @param word2 second word
      * @return true if word1 and word2 are adjacent else false
      */
-    public static boolean isAdjacent(String word1, String word2) {//when length difference is larger than 1, return false
+    public static boolean isAdjacent(String word1, String word2) {// when length difference is
+                                                                  // larger than 1, return false
         int length1 = word1.length();
         int length2 = word2.length();
         String shorter = null;
@@ -110,28 +124,31 @@ public class WordProcessor {
 
             int count = 0;
             int l = 0, s = 0;// l is long array index, s is short array index
-            while (l < lword.length-1) {
+            while (l < lword.length - 1) {
                 if (lword[l] == sword[s]) {
                     count++;
-                    if(s<sword.length-1)//
-                    s++;
+                    if (s < sword.length - 1)// handle the situation when there is a addtion of a
+                                             // character inthe end
+                        s++;
                 }
                 l++;
             }
-            
-            if(lword[l]==sword[s])//check for last one if the last one found eauqal in short  
-            {count++;}
+
+            if (lword[l] == sword[s])// check for last one if the last one found eauqal in short
+            {
+                count++;
+            }
             return count == sword.length;
-                    
-        }else{// condition that word length is the same
-            char[] charry1 = word1.toCharArray(); 
+
+        } else {// condition that word length is the same
+            char[] charry1 = word1.toCharArray();
             char[] charry2 = word2.toCharArray();
-            int count2 =0;
-            for(int i =0; i<charry1.length;i++) {
-                if (charry1[i]==charry2[i])
-                    count2++;                                      
-            }   
-            return count2 ==  charry1.length-1;
+            int count2 = 0;
+            for (int i = 0; i < charry1.length; i++) {
+                if (charry1[i] == charry2[i])
+                    count2++;
+            }
+            return count2 == charry1.length - 1;
 
         }
     }
