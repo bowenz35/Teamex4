@@ -1,22 +1,13 @@
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Comparator;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 import java.util.Queue;
 import java.util.Scanner;
-import java.util.Set;
 import java.util.Stack;
-import java.util.TreeMap;
-import java.util.function.Supplier;
-import java.util.stream.Stream;import com.sun.media.jfxmedia.events.NewFrameEvent;
 
 /**
  * This class adds additional functionality to the graph as a whole.
@@ -77,7 +68,8 @@ public class GraphProcessor {
      * @return Integer the number of vertices (words) added
      * @throws FileNotFoundException 
      */
-    public Integer populateGraph(String filepath){
+    @SuppressWarnings("resource")
+	public Integer populateGraph(String filepath){
         Integer verCount = 0;
         Scanner scanner;
 
@@ -89,7 +81,7 @@ public class GraphProcessor {
             return -1;
         }
 
-        //  creating vertices 
+        //  creating verticies 
         graph.addVertex(scanner.next());
         verCount++;
         while (scanner.hasNext()) {
@@ -102,8 +94,6 @@ public class GraphProcessor {
             }
             verCount++;
         }
-        shortestPathPrecomputation();
-        scanner.close();
         return verCount;
     }
 
@@ -126,6 +116,7 @@ public class GraphProcessor {
      * @return List<String> list of the words
      */
     public List<String> getShortestPath(String word1, String word2) {
+        shortestPathPrecomputation();
         String[] ary = {word1, word2};
         for (int i = 0; i < allPaths.size(); i++) {
             if(Arrays.equals(allPaths.get(i).strings, ary)) {
@@ -153,6 +144,7 @@ public class GraphProcessor {
      * @return Integer distance
      */
     public Integer getShortestDistance(String word1, String word2) {
+        shortestPathPrecomputation();
         String[] ary = {word1, word2};
         for (int i = 0; i < allPaths.size(); i++) {
             if(Arrays.equals(allPaths.get(i).strings, ary)) {
@@ -181,19 +173,19 @@ public class GraphProcessor {
         }
     }
 
-    //  using BFS
+    //using BFS
     private LinkedList<String> helper(String start, String end) {
-        HashMap<String, String> pathMap = new HashMap<>(); //  contains every node to other node's shortest path
+        HashMap<String, Boolean> visitedList = new HashMap<>(1000); //  a list of visited values
+        HashMap<String, String> pathMap = new HashMap<>(1000); //  contains every node to other node's shortest path
         LinkedList<String> returnList = new LinkedList<>(); //  the list will be returned
         Queue<String> queue = new LinkedList<>(); //  a queue of elements 
 
-
-        //  initializing variables
+        //initializing variables
         String current = null;
         pathMap.put(start, null);
+        visitedList.put(start, true);
         queue.add(start);
 
-        //trying to find the path
         if(start.equals(end)) { //  if start vertex and end vertex is the same vertex
             returnList.add(start);
             return returnList; 
@@ -206,6 +198,7 @@ public class GraphProcessor {
                     for (String string : graph.getNeighbors(current)) {
                         if (!pathMap.containsKey(string)) {
                             queue.add(string);
+                            visitedList.put(string, true);
                             pathMap.put(string, current);
                         }
                     }
