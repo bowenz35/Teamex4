@@ -1,11 +1,22 @@
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.lang.reflect.Array;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
+import java.util.Queue;
+import java.util.Scanner;
+import java.util.Set;
+import java.util.Stack;
+import java.util.TreeMap;
 import java.util.function.Supplier;
-import java.util.stream.Stream;
+import java.util.stream.Stream;import com.sun.media.jfxmedia.events.NewFrameEvent;
 
 /**
  * This class adds additional functionality to the graph as a whole.
@@ -40,15 +51,17 @@ public class GraphProcessor {
     /**
      * Graph which stores the dictionary words and their associated connections
      */
-    private GraphADT<String> graph;
+    private Graph<String> graph; // graph that contains the vertecies
+    private ArrayList<Routes> allPaths; //  an array list contains all the shortest paths
 
     /**
      * Constructor for this class. Initializes instances variables to set the starting state of the object
      */
     public GraphProcessor() {
-        this.graph = new Graph<>();
+        this.graph = new Graph<String>();
+        this.allPaths = new ArrayList<Routes>();
     }
-        
+
     /**
      * Builds a graph from the words in a file. Populate an internal graph, by adding words from the dictionary as vertices
      * and finding and adding the corresponding connections (edges) between 
@@ -62,13 +75,39 @@ public class GraphProcessor {
      * 
      * @param filepath file path to the dictionary
      * @return Integer the number of vertices (words) added
+     * @throws FileNotFoundException 
      */
-    public Integer populateGraph(String filepath) {
-        return 0;
-    
+    public Integer populateGraph(String filepath){
+        Integer verCount = 0;
+        Scanner scanner;
+
+        try {
+            WordProcessor.getWordStream(filepath);
+            scanner = new Scanner(new File(filepath));
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+            return -1;
+        }
+
+        //  creating vertices 
+        graph.addVertex(scanner.next());
+        verCount++;
+        while (scanner.hasNext()) {
+            String newWord = scanner.next();
+            graph.addVertex(newWord);
+            for (String string1 : graph.getAllVertices()) {
+                if(WordProcessor.isAdjacent(string1, newWord)) {
+                    graph.addEdge(string1, newWord);
+                }
+            }
+            verCount++;
+        }
+        shortestPathPrecomputation();
+        scanner.close();
+        return verCount;
     }
 
-    
+
     /**
      * Gets the list of words that create the shortest path between word1 and word2
      * 
@@ -87,10 +126,15 @@ public class GraphProcessor {
      * @return List<String> list of the words
      */
     public List<String> getShortestPath(String word1, String word2) {
+        String[] ary = {word1, word2};
+        for (int i = 0; i < allPaths.size(); i++) {
+            if(Arrays.equals(allPaths.get(i).strings, ary)) {
+                return allPaths.get(i).list;
+            }
+        }
         return null;
-    
     }
-    
+
     /**
      * Gets the distance of the shortest path between word1 and word2
      * 
@@ -109,15 +153,94 @@ public class GraphProcessor {
      * @return Integer distance
      */
     public Integer getShortestDistance(String word1, String word2) {
+        String[] ary = {word1, word2};
+        for (int i = 0; i < allPaths.size(); i++) {
+            if(Arrays.equals(allPaths.get(i).strings, ary)) {
+                if (allPaths.get(i).list == null) { //  if the list is null then return null
+                    return null;
+                } else {
+                    return allPaths.get(i).list.size();
+                }
+            }
+        }
         return null;
     }
-    
+
     /**
      * Computes shortest paths and distances between all possible pairs of vertices.
      * This method is called after every set of updates in the graph to recompute the path information.
      * Any shortest path algorithm can be used (Djikstra's or Floyd-Warshall recommended).
      */
     public void shortestPathPrecomputation() {
-    
+        for (String start : graph.getAllVertices()) {
+            for (String end : graph.getAllVertices()) {
+                String[] temp = {start, end};
+                LinkedList<String> list = helper(start, end);
+                this.allPaths.add(new Routes(temp, list));
+            }
+        }
+    }
+
+    //  using BFS
+    private LinkedList<String> helper(String start, String end) {
+        HashMap<String, Boolean> visitedList = new HashMap<>(); //  a list of visited values
+        HashMap<String, String> pathMap = new HashMap<>(); //  contains every node to other node's shortest path
+        LinkedList<String> returnList = new LinkedList<>(); //  the list will be returned
+        Queue<String> queue = new LinkedList<>(); //  a queue of elements 
+
+        //  initializing variables
+        String current = null;
+        pathMap.put(start, null);
+        visitedList.put(start, true);
+        queue.add(start);
+
+        //trying to find the path
+        if(start.equals(end)) { //  if start vertex and end vertex is the same vertex
+            returnList.add(start);
+            return returnList; 
+        }else {
+            while(!queue.isEmpty()) {
+                current = queue.poll();//update current
+                if (current.equals(end)) {
+                    break;
+                }else {
+                    for (String string : graph.getNeighbors(current)) {
+                        if (!pathMap.containsKey(string)) {
+                            queue.add(string);
+                            visitedList.put(string, true);
+                            pathMap.put(string, current);
+                        }
+                    }
+                }
+            }
+        }
+
+        if(!current.equals(end)) {return null;} //  means did not find the end
+
+        Stack<String> stack = new Stack<>();
+        String key = end;
+        while(pathMap.get(key)!=null) {
+            stack.push(key);
+            key = pathMap.get(key);
+        }
+        stack.push(key); //  adding the start vertex to the stack
+        while(!stack.empty()) { //  reversing the list order to the normal one to the return list
+            returnList.add(stack.pop());
+        }
+        return returnList;
+    }
+}
+
+class Routes { //  a class that contains the start and end verticies' shortest path
+    String[] strings; // index 1 is start vertx's value, index 2 is end vertex's value
+    LinkedList<String> list; //  the shortest path
+
+    public Routes(String[] strings, LinkedList<String> list) {
+        this.strings = strings;
+        this.list = list;
+    }
+
+    public String toString() {
+        return "!!"+strings[0]+", "+strings[1]+"!!";
     }
 }
