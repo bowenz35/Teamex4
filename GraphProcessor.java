@@ -183,15 +183,14 @@ public class GraphProcessor {
 
     //  using BFS
     private LinkedList<String> helper(String start, String end) {
-        HashMap<String, Boolean> visitedList = new HashMap<>(); //  a list of visited values
         HashMap<String, String> pathMap = new HashMap<>(); //  contains every node to other node's shortest path
         LinkedList<String> returnList = new LinkedList<>(); //  the list will be returned
         Queue<String> queue = new LinkedList<>(); //  a queue of elements 
 
+
         //  initializing variables
         String current = null;
         pathMap.put(start, null);
-        visitedList.put(start, true);
         queue.add(start);
 
         //trying to find the path
@@ -207,7 +206,6 @@ public class GraphProcessor {
                     for (String string : graph.getNeighbors(current)) {
                         if (!pathMap.containsKey(string)) {
                             queue.add(string);
-                            visitedList.put(string, true);
                             pathMap.put(string, current);
                         }
                     }
